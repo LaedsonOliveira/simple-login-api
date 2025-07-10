@@ -1,7 +1,10 @@
 package com.dev.laedson.simple_auth_api.controller;
 
+import com.dev.laedson.simple_auth_api.DTO.AccountResponseDTO;
+import com.dev.laedson.simple_auth_api.DTO.CreateAccountDTO;
 import com.dev.laedson.simple_auth_api.DTO.CreateUserDTO;
 import com.dev.laedson.simple_auth_api.DTO.UpdateUserDTO;
+import com.dev.laedson.simple_auth_api.entity.Account;
 import com.dev.laedson.simple_auth_api.entity.User;
 import com.dev.laedson.simple_auth_api.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,6 +58,21 @@ public class UserController {
     public ResponseEntity<Void> deleteById(@PathVariable("userID") String userId) {
         userService.deleteById(userId);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{userId}/accounts")
+    public ResponseEntity<User> createUser(@PathVariable("userId") String userId,
+                                           @RequestBody CreateAccountDTO createAccountDTO){
+        userService.createAccount(userId, createAccountDTO);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/{userId}/accounts")
+    public ResponseEntity<List<AccountResponseDTO>> createUser(@PathVariable("userId") String userId){
+
+        var accounts = userService.listAccounts(userId);
+
+        return ResponseEntity.ok(accounts);
     }
 
 

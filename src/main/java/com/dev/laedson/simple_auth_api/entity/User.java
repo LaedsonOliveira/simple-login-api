@@ -7,8 +7,10 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.sql.ast.tree.from.MappedByTableGroup;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -30,6 +32,8 @@ public class User {
     @UpdateTimestamp
     private Instant updateTimestamp;
 
+    @OneToMany(mappedBy = "user")
+    private List<Account> accountList;
 
     public User() {
     }
@@ -95,5 +99,13 @@ public class User {
 
     public void setUpdateTimestamp(Instant updateTimestamp) {
         this.updateTimestamp = updateTimestamp;
+    }
+
+    public List<Account> getAccountList() {
+        return accountList;
+    }
+
+    public void setAccountList(List<Account> accountList) {
+        this.accountList = accountList;
     }
 }
