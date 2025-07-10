@@ -3,11 +3,13 @@ package com.dev.laedson.simple_auth_api.service;
 import com.dev.laedson.simple_auth_api.DTO.AccountResponseDTO;
 import com.dev.laedson.simple_auth_api.DTO.AccountStockResponseDTO;
 import com.dev.laedson.simple_auth_api.DTO.AssociateAccountStockDTO;
+import com.dev.laedson.simple_auth_api.client.BrapiClient;
 import com.dev.laedson.simple_auth_api.entity.AccountStockId;
 import com.dev.laedson.simple_auth_api.entity.AccountsStock;
 import com.dev.laedson.simple_auth_api.repository.AccountRepository;
 import com.dev.laedson.simple_auth_api.repository.AccountStockRepository;
 import com.dev.laedson.simple_auth_api.repository.StockRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -19,15 +21,22 @@ import java.util.UUID;
 @Service
 public class AccountService {
 
+    @Value("#{environment.TOKEN}")
+    private String TOKEN;
+
     private AccountRepository accountRepository;
 
     private StockRepository stockRepository;
 
+    private BrapiClient brapiClient;
+
     private AccountStockRepository accountStockRepository;
 
-    public AccountService(AccountRepository accountRepository, StockRepository stockRepository) {
+    public AccountService(AccountRepository accountRepository, StockRepository stockRepository, BrapiClient brapiClient, AccountStockRepository accountStockRepository) {
         this.accountRepository = accountRepository;
         this.stockRepository = stockRepository;
+        this.brapiClient = brapiClient;
+        this.accountStockRepository = accountStockRepository;
     }
 
     public void associateAccountStock(String accountId, AssociateAccountStockDTO associateStockDTO) {
@@ -58,8 +67,20 @@ public class AccountService {
 
         return account.getAccountsStocks()
                 .stream()
-                .map(as -> new AccountStockResponseDTO(as.getStock().getStockId(), as.getQuantity(), 0.0))
+                .map(as -> new AccountStockResponseDTO(
+                        as.getStock().getStockId(),
+                        as.getQuantity(),
+                        getTotal(as.getQuantity(), as.getStock().getStockId())
+                ))
                 .toList();
 
+    }
+
+    private double getTotal(Integer quantity, String stockId) {
+        var response = brapiClient.getQuote(TOKEN, stockId);
+
+        double price = response.results().get(0).regularMarketPrice();
+
+        return quantity * price;
     }
 }
